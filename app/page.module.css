@@ -9,18 +9,29 @@
 
 .header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  padding: 4px 0 2px;
 }
 
 .title {
-  font-size: 1.6rem;
-  margin: 0 0 6px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 8px;
+  /* Premium rose gradient wordmark; solid fallback for engines without
+     background-clip so the title never disappears. */
+  color: var(--primary-hover);
+  background: linear-gradient(120deg, #b0577d 0%, #8f3f63 60%, #7a2f56 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .subtitle {
   color: var(--text-muted);
   margin: 0;
   font-size: 0.95rem;
+  letter-spacing: -0.005em;
 }
 
 .card {
@@ -29,7 +40,7 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   /* Tighter padding on mobile; expands at >=640px via the media block below. */
-  padding: 16px;
+  padding: 18px;
   margin-bottom: 16px;
 }
 
@@ -56,13 +67,13 @@
    exists, so tapping on touch screens doesn't leave a stuck highlight. */
 .dropzoneActive {
   border-color: var(--primary);
-  background: #f2f9f5;
+  background: var(--primary-soft);
 }
 
 @media (hover: hover) {
   .dropzone:hover {
     border-color: var(--primary);
-    background: #f2f9f5;
+    background: var(--primary-soft);
   }
 }
 
@@ -89,7 +100,7 @@
   max-height: min(360px, 45vh);
   object-fit: contain;
   border-radius: var(--radius);
-  background: #f0f1f3;
+  background: var(--bg-muted);
 }
 
 .actions {
@@ -110,46 +121,60 @@
 .btn {
   appearance: none;
   border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   cursor: pointer;
   min-height: 44px;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.18s ease, border-color 0.18s ease,
+    box-shadow 0.18s ease, transform 0.06s ease;
 }
 
 .btnPrimary {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   color: var(--primary-contrast);
+  box-shadow: var(--shadow-primary);
 }
 
 .btnSecondary {
   background: var(--surface);
   color: var(--text);
-  border-color: var(--border);
+  border-color: var(--border-strong);
 }
 
 /* Hover styles guarded so touch taps don't leave buttons in a hover state.
    :active gives touch users immediate press feedback instead. */
 @media (hover: hover) {
   .btnPrimary:hover:not(:disabled) {
-    background: var(--primary-hover);
+    background: linear-gradient(
+      135deg,
+      var(--primary-hover) 0%,
+      #7a2f56 100%
+    );
+    box-shadow: 0 8px 22px rgba(166, 77, 117, 0.36);
   }
   .btnSecondary:hover:not(:disabled) {
-    border-color: var(--text-muted);
+    border-color: var(--primary);
+    background: var(--surface-tint);
   }
 }
 
 .btnPrimary:active:not(:disabled) {
-  background: var(--primary-hover);
+  background: linear-gradient(135deg, var(--primary-hover) 0%, #7a2f56 100%);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(1px);
 }
 .btnSecondary:active:not(:disabled) {
-  border-color: var(--text-muted);
+  border-color: var(--primary);
+  background: var(--surface-tint);
+  transform: translateY(1px);
 }
 
 .btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -184,15 +209,17 @@
   gap: 12px;
   padding: 16px;
   background: var(--danger-bg);
-  border: 1px solid #fecdca;
+  border: 1px solid var(--danger-border);
   border-radius: var(--radius);
   color: var(--danger);
 }
 
 /* --- Ingredient list --- */
 .sectionTitle {
-  font-size: 1.05rem;
-  margin: 0 0 12px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
 }
 
 .chips {
@@ -210,11 +237,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #eef2f0;
+  background: var(--chip-bg);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 4px 4px 4px 14px;
   font-size: 0.9rem;
+  font-weight: 500;
   /* Keep the whole chip a comfortable height so its tap area is generous. */
   min-height: 36px;
 }
@@ -245,12 +273,12 @@
 
 @media (hover: hover) {
   .chipRemove:hover {
-    background: #dfe4e2;
+    background: var(--chip-bg-hover);
     color: var(--danger);
   }
 }
 .chipRemove:active {
-  background: #dfe4e2;
+  background: var(--chip-bg-hover);
   color: var(--danger);
 }
 
@@ -270,14 +298,26 @@
   flex: 1;
   min-width: 0;
   min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  padding: 11px 15px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   /* 16px on mobile prevents iOS Safari from zooming the page on focus.
      Nudged down to 0.95rem on larger screens in the media block below. */
   font-size: 16px;
   background: var(--surface);
   color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Soft brand ring for pointer/typing focus (premium feel). Keyboard users
+   still get the strong global :focus-visible outline — we only suppress the
+   default UA outline for non-keyboard focus, never for focus-visible. */
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(166, 77, 117, 0.14);
+}
+.input:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .divider {
@@ -287,8 +327,8 @@
 }
 
 .confirmedBox {
-  background: #f2f9f5;
-  border: 1px solid #cbe6d7;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-soft-border);
   border-radius: var(--radius);
   padding: 16px;
 }
@@ -312,12 +352,15 @@
 .recipeCard {
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 18px;
   background: var(--surface);
+  box-shadow: var(--shadow);
 }
 
 .recipeName {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   margin: 0 0 10px;
 }
 
@@ -331,18 +374,20 @@
 .recipeBadge {
   display: inline-flex;
   align-items: center;
-  background: #f2f9f5;
-  border: 1px solid #cbe6d7;
-  color: var(--primary-hover);
-  border-radius: 999px;
-  padding: 4px 12px;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-soft-border);
+  color: var(--primary-strong-text);
+  border-radius: var(--radius-pill);
+  padding: 5px 13px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .recipeSubTitle {
   font-size: 0.95rem;
-  margin: 14px 0 8px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 16px 0 8px;
   color: var(--text);
 }
 
@@ -356,9 +401,9 @@
 }
 
 .recipeIngredient {
-  background: #eef2f0;
+  background: var(--chip-bg);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 4px 12px;
   font-size: 0.88rem;
 }

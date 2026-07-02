@@ -1,17 +1,55 @@
 :root {
-  --bg: #f7f8fa;
+  /* --- Surfaces & background (warm blush / cream) --- */
+  --bg: #fbf5f4;
+  --bg-gradient-top: #fdf7f6;
+  --bg-gradient-bottom: #f6ebef;
   --surface: #ffffff;
-  --border: #e2e5ea;
-  --text: #1c2024;
-  --text-muted: #5b6470;
-  --primary: #2f7d54;
-  --primary-hover: #276646;
+  --surface-tint: #fdf8f9;
+  /* Neutral warm fill (image letterbox, etc.) */
+  --bg-muted: #f4ecef;
+
+  /* --- Hairlines --- */
+  --border: #eedde4;
+  --border-strong: #ddc6cf;
+
+  /* --- Text (deep warm plum-charcoal) --- */
+  --text: #33272e;
+  --text-muted: #7d6672; /* AA on white: 5.23:1 */
+
+  /* --- Brand: rich rose / mauve --- */
+  --primary: #a64d75; /* white text on this: 5.33:1 */
+  --primary-hover: #8f3f63; /* white text: 6.87:1 */
   --primary-contrast: #ffffff;
+  /* Soft pastel rose for badges, chips-on-brand, tinted boxes */
+  --primary-soft: #fbeef4;
+  --primary-soft-border: #f0d3e1;
+  --primary-strong-text: #8f3f63; /* text on --primary-soft: ~6.4:1 */
+
+  /* Neutral chip (warm rose-gray) */
+  --chip-bg: #f6eef1;
+  --chip-bg-hover: #f0dbe4;
+
+  /* --- Feedback --- */
   --danger: #b42318;
   --danger-bg: #fef3f2;
-  --focus: #1d6fe0;
-  --radius: 12px;
-  --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --danger-border: #f6cfca;
+  --success-text: #2e7d46; /* AA on white */
+
+  /* Focus ring: deep plum, high-visibility on light surfaces */
+  --focus: #7a2f56;
+
+  /* --- Shape & elevation (softer, more premium) --- */
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+  /* Soft, warm-tinted layered shadows */
+  --shadow: 0 1px 2px rgba(93, 45, 66, 0.04),
+    0 6px 20px rgba(93, 45, 66, 0.06);
+  --shadow-md: 0 2px 6px rgba(93, 45, 66, 0.06),
+    0 14px 34px rgba(93, 45, 66, 0.1);
+  --shadow-lg: 0 8px 20px rgba(51, 20, 38, 0.12),
+    0 24px 56px rgba(51, 20, 38, 0.22);
+  --shadow-primary: 0 6px 18px rgba(166, 77, 117, 0.28);
 }
 
 * {
@@ -22,15 +60,26 @@ html,
 body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
 }
 
 body {
   background: var(--bg);
+  background: linear-gradient(
+    180deg,
+    var(--bg-gradient-top) 0%,
+    var(--bg-gradient-bottom) 100%
+  );
+  background-attachment: fixed;
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Malgun Gothic",
-    "Apple SD Gothic Neo", sans-serif;
-  line-height: 1.5;
+  font-family: "Pretendard", "Pretendard Variable", system-ui, -apple-system,
+    "Segoe UI", Roboto, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  font-feature-settings: "kern" 1, "liga" 1;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   /* Prevent iOS Safari from auto-inflating text on landscape/orientation
      change; users can still pinch-zoom. */
   -webkit-text-size-adjust: 100%;
@@ -65,7 +114,7 @@ summary {
 :where(a, button, input, [tabindex]):focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {

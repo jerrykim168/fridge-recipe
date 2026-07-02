@@ -11,8 +11,10 @@ import { isValidEmail, normalizeEmail } from "@/lib/auth/validate";
 import { clientKey, createRateLimiter } from "@/lib/security/rateLimit";
 
 // Contract (see lib/constants.ts):
-//   POST /api/auth/signup   Request: { email, password } -> AuthResponse
+//   POST /api/auth/signup   Request: { email, password, passwordConfirm } -> AuthResponse
 //   On success: sets the httpOnly session cookie and returns the new user.
+//   passwordConfirm is re-validated server-side even though the client already
+//   checks it — client-side validation is trivially bypassable (e.g. curl).
 
 export const runtime = "nodejs";
 
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest) {
   const email =
     typeof body?.email === "string" ? normalizeEmail(body.email) : "";
   const password = typeof body?.password === "string" ? body.password : "";
+  const passwordConfirm =
+    typeof body?.passwordConfirm === "string" ? body.passwordConfirm : "";
 
   if (!isValidEmail(email)) {
     return json(
@@ -55,6 +59,12 @@ export async function POST(request: NextRequest) {
         success: false,
         error: `비밀번호는 최소 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.`,
       },
+      400,
+    );
+  }
+  if (password !== passwordConfirm) {
+    return json(
+      { success: false, error: "비밀번호가 일치하지 않습니다." },
       400,
     );
   }

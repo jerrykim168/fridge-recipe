@@ -220,6 +220,32 @@
   text-decoration: underline;
 }
 
+/* Live password-confirmation feedback (signup only). */
+.matchHint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.matchOk {
+  color: #4caf50;
+}
+
+.matchError {
+  color: #f44336;
+}
+
+/* Disabled submit button: dim it and signal it's not clickable. Overrides the
+   shared page.btn styles when the confirm-password gate isn't satisfied. */
+.form button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* --- Save button (in recipe cards) --- */
 .saveWrap {
   margin-top: 16px;

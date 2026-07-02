@@ -106,6 +106,7 @@ export type AuthUser = {
 export type SignupRequest = {
   email: string;
   password: string;
+  passwordConfirm: string;
 };
 
 export type LoginRequest = {

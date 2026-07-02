@@ -25,6 +25,7 @@ export default function AuthDialog() {
   const [mode, setMode] = useState<AuthMode>(dialogMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,15 +37,27 @@ export default function AuthDialog() {
   const titleId = useId();
   const emailId = useId();
   const passwordId = useId();
+  const passwordConfirmId = useId();
+  const confirmFeedbackId = useId();
   const errorId = useId();
 
-  // Sync local mode with the mode the opener requested.
+  // Empty every field. Called on open, on tab/mode switch, and after success —
+  // so a previous user's credentials never linger in the inputs.
+  const resetForm = useCallback(() => {
+    setEmail("");
+    setPassword("");
+    setPasswordConfirm("");
+    setError("");
+  }, []);
+
+  // Sync local mode with the mode the opener requested, and start from a clean
+  // form each time the dialog opens.
   useEffect(() => {
     if (dialogOpen) {
       setMode(dialogMode);
-      setError("");
+      resetForm();
     }
-  }, [dialogOpen, dialogMode]);
+  }, [dialogOpen, dialogMode, resetForm]);
 
   // Focus management: remember the trigger, focus the first field on open,
   // restore focus on close.
@@ -87,7 +100,9 @@ export default function AuthDialog() {
 
   const switchMode = (next: AuthMode) => {
     setMode(next);
-    setError("");
+    // Clear all fields on tab switch so credentials typed in one mode don't
+    // carry over into the other (and reset the confirm-password feedback).
+    resetForm();
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -102,6 +117,10 @@ export default function AuthDialog() {
       setError(`비밀번호는 최소 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.`);
       return;
     }
+    if (mode === "signup" && password !== passwordConfirm) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
     setSubmitting(true);
     setError("");
     const action = mode === "login" ? login : signup;
@@ -112,13 +131,20 @@ export default function AuthDialog() {
       return;
     }
     // Success: parent closes the dialog once `user` is set; reset local fields.
-    setEmail("");
-    setPassword("");
+    resetForm();
   };
 
   if (!dialogOpen) return null;
 
   const isLogin = mode === "login";
+
+  // Confirm-password state (signup only). Feedback stays hidden while the
+  // confirm field is empty; otherwise it reports match / mismatch live.
+  const confirmTouched = passwordConfirm.length > 0;
+  const passwordsMatch = password === passwordConfirm;
+  const showMismatch = !isLogin && confirmTouched && !passwordsMatch;
+  // Block signup submission until the confirm field is non-empty and matches.
+  const signupBlocked = !isLogin && (!confirmTouched || !passwordsMatch);
 
   return (
     <div
@@ -182,7 +208,7 @@ export default function AuthDialog() {
               className={page.input}
               type="email"
               inputMode="email"
-              autoComplete="email"
+              autoComplete="off"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               aria-invalid={error ? true : undefined}
@@ -211,6 +237,50 @@ export default function AuthDialog() {
             />
           </div>
 
+          {!isLogin && (
+            <div className={s.field}>
+              <label htmlFor={passwordConfirmId} className={s.label}>
+                비밀번호 확인
+              </label>
+              <input
+                id={passwordConfirmId}
+                className={page.input}
+                type="password"
+                autoComplete="new-password"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                aria-invalid={showMismatch ? true : undefined}
+                aria-describedby={
+                  confirmTouched ? confirmFeedbackId : undefined
+                }
+                placeholder="비밀번호를 다시 입력하세요"
+                required
+              />
+              {/* Live match feedback; aria-live so screen readers hear it.
+                  Hidden entirely while the field is empty. */}
+              {confirmTouched && (
+                <p
+                  id={confirmFeedbackId}
+                  className={`${s.matchHint} ${
+                    passwordsMatch ? s.matchOk : s.matchError
+                  }`}
+                  aria-live="polite"
+                >
+                  {passwordsMatch ? (
+                    <>
+                      <span aria-hidden="true">✅</span> 비밀번호가 일치합니다
+                    </>
+                  ) : (
+                    <>
+                      <span aria-hidden="true">❌</span> 비밀번호가 일치하지
+                      않습니다
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
+          )}
+
           {error && (
             <p id={errorId} className={page.error} role="alert">
               {error}
@@ -220,7 +290,7 @@ export default function AuthDialog() {
           <button
             type="submit"
             className={`${page.btn} ${page.btnPrimary} ${s.fullWidth}`}
-            disabled={submitting}
+            disabled={submitting || signupBlocked}
           >
             {submitting ? (
               <span className={s.btnLoading}>

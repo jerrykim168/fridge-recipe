@@ -21,6 +21,15 @@ import {
 type Status = "idle" | "preview" | "loading" | "success" | "error";
 type RecipeStatus = "idle" | "loading" | "success" | "error";
 
+// Recipe generation takes 15-35s (DeepSeek model latency) — rotate through
+// these so the wait doesn't read as a frozen screen.
+const RECIPE_LOADING_MESSAGES = [
+  "재료를 확인하고 있어요…",
+  "레시피 아이디어를 구상하고 있어요…",
+  "조리 순서를 정리하고 있어요…",
+  "마무리하고 있어요, 조금만 더 기다려 주세요…",
+];
+
 export default function Home() {
   const [status, setStatus] = useState<Status>("idle");
   const [file, setFile] = useState<File | null>(null);
@@ -36,6 +45,7 @@ export default function Home() {
   const [recipeStatus, setRecipeStatus] = useState<RecipeStatus>("idle");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipeError, setRecipeError] = useState<string>("");
+  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newItemId = useId();
@@ -46,6 +56,19 @@ export default function Home() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  // Rotate the recipe-generation loading message so a 15-35s wait doesn't
+  // look frozen. Resets to the first message each time a request starts.
+  useEffect(() => {
+    if (recipeStatus !== "loading") {
+      setLoadingMessageIndex(0);
+      return;
+    }
+    const id = setInterval(() => {
+      setLoadingMessageIndex((i) => (i + 1) % RECIPE_LOADING_MESSAGES.length);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [recipeStatus]);
 
   const resetAll = useCallback(() => {
     setStatus("idle");
@@ -476,7 +499,7 @@ export default function Home() {
           {recipeStatus === "loading" && (
             <div className={styles.loading} role="status">
               <span className={styles.spinner} aria-hidden="true" />
-              <span>AI가 레시피를 만들고 있어요…</span>
+              <span>{RECIPE_LOADING_MESSAGES[loadingMessageIndex]}</span>
             </div>
           )}
 

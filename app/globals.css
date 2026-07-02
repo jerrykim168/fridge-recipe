@@ -31,6 +31,22 @@ body {
     "Apple SD Gothic Neo", sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* Prevent iOS Safari from auto-inflating text on landscape/orientation
+     change; users can still pinch-zoom. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Remove the 300ms tap delay and iOS grey tap flash on interactive elements
+   while keeping our own :focus-visible / :active styling. */
+a,
+button,
+[role="button"],
+input,
+label,
+summary {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .visually-hidden {

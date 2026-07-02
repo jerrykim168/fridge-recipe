@@ -1,7 +1,10 @@
 .page {
   max-width: 720px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  /* Mobile-first: comfortable side gutters on 375px, respects notch/safe area. */
+  padding: 20px 16px 64px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
 }
 
 .header {
@@ -25,8 +28,9 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 20px;
-  margin-bottom: 20px;
+  /* Tighter padding on mobile; expands at >=640px via the media block below. */
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
 /* --- Dropzone --- */
@@ -37,8 +41,8 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  min-height: 200px;
-  padding: 32px 16px;
+  min-height: 180px;
+  padding: 28px 16px;
   border: 2px dashed var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -48,10 +52,18 @@
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.dropzone:hover,
+/* Active (drag) state applies on all devices; hover only where a real pointer
+   exists, so tapping on touch screens doesn't leave a stuck highlight. */
 .dropzoneActive {
   border-color: var(--primary);
   background: #f2f9f5;
+}
+
+@media (hover: hover) {
+  .dropzone:hover {
+    border-color: var(--primary);
+    background: #f2f9f5;
+  }
 }
 
 .dropzoneIcon {
@@ -72,7 +84,9 @@
 
 .previewImage {
   width: 100%;
-  max-height: 360px;
+  /* Cap by viewport height on small screens so the preview never pushes the
+     action buttons below the fold on a 375px phone. */
+  max-height: min(360px, 45vh);
   object-fit: contain;
   border-radius: var(--radius);
   background: #f0f1f3;
@@ -82,6 +96,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+/* On the narrowest phones, stack action buttons full-width so each is an
+   easy, unambiguous tap target instead of two cramped side-by-side buttons. */
+@media (max-width: 400px) {
+  .actions .btn {
+    flex: 1 1 100%;
+  }
 }
 
 /* --- Buttons --- */
@@ -101,16 +123,28 @@
   background: var(--primary);
   color: var(--primary-contrast);
 }
-.btnPrimary:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
 
 .btnSecondary {
   background: var(--surface);
   color: var(--text);
   border-color: var(--border);
 }
-.btnSecondary:hover:not(:disabled) {
+
+/* Hover styles guarded so touch taps don't leave buttons in a hover state.
+   :active gives touch users immediate press feedback instead. */
+@media (hover: hover) {
+  .btnPrimary:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+  .btnSecondary:hover:not(:disabled) {
+    border-color: var(--text-muted);
+  }
+}
+
+.btnPrimary:active:not(:disabled) {
+  background: var(--primary-hover);
+}
+.btnSecondary:active:not(:disabled) {
   border-color: var(--text-muted);
 }
 
@@ -167,18 +201,22 @@
   margin: 0 0 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  /* Slightly larger gap so adjacent chip remove buttons aren't easy to
+     mis-tap on touch. */
+  gap: 10px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   background: #eef2f0;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 6px 6px 6px 14px;
+  padding: 4px 4px 4px 14px;
   font-size: 0.9rem;
+  /* Keep the whole chip a comfortable height so its tap area is generous. */
+  min-height: 36px;
 }
 
 .chipRemove {
@@ -186,17 +224,32 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
-  width: 28px;
-  height: 28px;
+  /* 32px visual, but a padded pseudo-element extends the hit area toward the
+     recommended 44px without inflating the chip's layout size. */
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
-.chipRemove:hover {
+.chipRemove::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+@media (hover: hover) {
+  .chipRemove:hover {
+    background: #dfe4e2;
+    color: var(--danger);
+  }
+}
+.chipRemove:active {
   background: #dfe4e2;
   color: var(--danger);
 }
@@ -215,11 +268,14 @@
 
 .input {
   flex: 1;
+  min-width: 0;
   min-height: 44px;
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  font-size: 0.95rem;
+  /* 16px on mobile prevents iOS Safari from zooming the page on focus.
+     Nudged down to 0.95rem on larger screens in the media block below. */
+  font-size: 16px;
   background: var(--surface);
   color: var(--text);
 }
@@ -317,13 +373,45 @@
 
 .recipeSteps li {
   padding-left: 4px;
+  line-height: 1.6;
 }
 
+/* --- Responsive tiers (mobile-first; base styles above target ~375px) --- */
+
+/* Tablet and up: roomier cards, larger heading, denser input font. */
 @media (min-width: 640px) {
   .title {
     font-size: 1.9rem;
   }
   .page {
+    padding-top: 32px;
+  }
+  .card {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .input {
+    /* Zoom-on-focus is not a concern on tablet/desktop, so tighten slightly. */
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablet portrait (768px): give the two-column recipe ingredient chips and
+   badges a bit more breathing room and cap heading growth. */
+@media (min-width: 768px) {
+  .page {
     padding-top: 40px;
+    padding-bottom: 80px;
+  }
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Desktop (1280px+): the 720px max-width already centers content; add subtle
+   hover affordance headroom and a touch more vertical rhythm. */
+@media (min-width: 1280px) {
+  .header {
+    margin-bottom: 32px;
   }
 }

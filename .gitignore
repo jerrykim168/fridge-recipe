@@ -33,3 +33,5 @@ setting_etc.txt
 # Supabase credentials (service role key bypasses RLS — never commit)
 Service_role_key.env
 supabase_publishable_key.env
+
+.vercel

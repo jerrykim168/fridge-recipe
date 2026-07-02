@@ -4,6 +4,7 @@ import {
   type RecipeGenerateResponse,
 } from "@/lib/constants";
 import { OpenRouterError, generateRecipes } from "@/lib/openrouter";
+import { clientKey, createRateLimiter } from "@/lib/security/rateLimit";
 
 // Contract (agreed with frontend, see lib/constants.ts):
 //   POST /api/recipes/generate
@@ -13,25 +14,9 @@ import { OpenRouterError, generateRecipes } from "@/lib/openrouter";
 
 export const runtime = "nodejs";
 
-// --- Minimal in-memory rate limiter (mirrors the recognize route) -----------
-// Per-process only — fine for a single instance; swap for a shared store
-// (Redis / Upstash) if this ever runs behind multiple server instances.
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 10;
-const hits = new Map<string, number[]>();
-
-function isRateLimited(key: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
-  recent.push(now);
-  hits.set(key, recent);
-  return recent.length > MAX_REQUESTS_PER_WINDOW;
-}
-
-function clientKey(req: NextRequest): string {
-  const fwd = req.headers.get("x-forwarded-for");
-  return fwd ? fwd.split(",")[0].trim() : "local";
-}
+const isRateLimited = createRateLimiter(WINDOW_MS, MAX_REQUESTS_PER_WINDOW);
 
 function json(body: RecipeGenerateResponse, status: number) {
   return NextResponse.json(body, { status });

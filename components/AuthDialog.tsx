@@ -123,8 +123,10 @@ export default function AuthDialog() {
     }
     setSubmitting(true);
     setError("");
-    const action = mode === "login" ? login : signup;
-    const result = await action(trimmedEmail, password);
+    const result =
+      mode === "login"
+        ? await login(trimmedEmail, password)
+        : await signup(trimmedEmail, password, passwordConfirm);
     setSubmitting(false);
     if (!result.ok) {
       setError(result.error || "요청을 처리하지 못했습니다.");

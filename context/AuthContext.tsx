@@ -31,7 +31,7 @@ type AuthContextValue = {
   /** True once the initial GET /api/auth/me has resolved. */
   ready: boolean;
   login: (email: string, password: string) => Promise<AuthResult>;
-  signup: (email: string, password: string) => Promise<AuthResult>;
+  signup: (email: string, password: string, passwordConfirm: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
   // Auth dialog is a single global instance; any component can open it
   // (e.g. a save attempt while logged out — FR-0.3).
@@ -85,13 +85,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       endpoint: string,
       email: string,
       password: string,
+      passwordConfirm?: string,
     ): Promise<AuthResult> => {
       try {
+        const body: Record<string, string> = { email, password };
+        if (passwordConfirm !== undefined) {
+          body.passwordConfirm = passwordConfirm;
+        }
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify(body),
         });
         let data: AuthResponse | null = null;
         try {
@@ -122,8 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signup = useCallback(
-    (email: string, password: string) =>
-      authenticate(AUTH_SIGNUP_ENDPOINT, email, password),
+    (email: string, password: string, passwordConfirm: string) =>
+      authenticate(AUTH_SIGNUP_ENDPOINT, email, password, passwordConfirm),
     [authenticate],
   );
 

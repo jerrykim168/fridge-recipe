@@ -51,11 +51,16 @@ export default function AuthDialog() {
   }, []);
 
   // Sync local mode with the mode the opener requested, and start from a clean
-  // form each time the dialog opens.
+  // form each time the dialog opens. Chrome's saved-password manager ignores
+  // autocomplete="off" and autofills the (empty, controlled) inputs shortly
+  // after mount regardless of our reset above, so re-clear once more on the
+  // next tick to override whatever the browser just filled in.
   useEffect(() => {
     if (dialogOpen) {
       setMode(dialogMode);
       resetForm();
+      const t = window.setTimeout(resetForm, 60);
+      return () => window.clearTimeout(t);
     }
   }, [dialogOpen, dialogMode, resetForm]);
 
@@ -200,6 +205,30 @@ export default function AuthDialog() {
         </div>
 
         <form className={s.form} onSubmit={onSubmit} noValidate>
+          {/* Decoy fields: Chrome's password manager ignores autocomplete="off"
+              on the real fields below and autofills them anyway. Browsers
+              generally autofill the *first* matching username/password pair
+              in the form, so these absorb that instead. Hidden from sighted
+              users and screen readers alike; never read from. */}
+          <input
+            type="text"
+            name="username"
+            autoComplete="username"
+            className="visually-hidden"
+            aria-hidden="true"
+            tabIndex={-1}
+            defaultValue=""
+          />
+          <input
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            className="visually-hidden"
+            aria-hidden="true"
+            tabIndex={-1}
+            defaultValue=""
+          />
+
           <div className={s.field}>
             <label htmlFor={emailId} className={s.label}>
               이메일

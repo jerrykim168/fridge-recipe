@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AuthResponse, LoginRequest } from "@/lib/constants";
 import { userRepository } from "@/lib/repositories";
-import { verifyPassword } from "@/lib/auth/password";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSession, setSessionCookie } from "@/lib/auth/session";
 import { isValidEmail, normalizeEmail } from "@/lib/auth/validate";
 import { clientKey, createRateLimiter } from "@/lib/security/rateLimit";
@@ -10,6 +10,16 @@ import { clientKey, createRateLimiter } from "@/lib/security/rateLimit";
 //   POST /api/auth/login   Request: { email, password } -> AuthResponse
 
 export const runtime = "nodejs";
+
+// Computed once so verifyPassword() always has real scrypt work to do, even
+// when the email doesn't exist (see DUMMY_PASSWORD_HASH usage below) — this
+// keeps unknown-email and wrong-password responses on the same timing
+// profile, closing a user-enumeration timing side-channel (QA finding,
+// 2026-07-02: unknown-email responses measured ~18ms vs ~50ms for a real
+// account, a reliably observable difference).
+const DUMMY_PASSWORD_HASH = hashPassword(
+  "qa-timing-safety-dummy-value-never-used-as-a-real-password",
+);
 
 // Tighter than signup — this is the endpoint a credential-stuffing attempt
 // would hammer.
@@ -51,7 +61,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const user = await userRepository.findByEmail(email);
-    if (!user || !verifyPassword(password, user.passwordHash)) {
+    // Always run verifyPassword — against the real hash if the user exists,
+    // against a fixed dummy hash otherwise — so a nonexistent email can't be
+    // distinguished from a wrong password by response time.
+    const passwordOk = verifyPassword(
+      password,
+      user?.passwordHash ?? DUMMY_PASSWORD_HASH,
+    );
+    if (!user || !passwordOk) {
       return json({ success: false, error: INVALID_CREDENTIALS_ERROR }, 401);
     }
 

@@ -1,0 +1,3 @@
+- [Rate limiter XFF bypass](project_rate_limiter_xff_bypass.md) — every rate limiter trusts client-supplied X-Forwarded-For; confirmed bypassable via curl, 2026-07-02.
+- [SQLite storage notes](project_sqlite_storage_notes.md) — node:sqlite is an interim choice before planned Supabase migration; incompatible with serverless FS.
+- [No test framework](project_no_test_framework.md) — no Jest/Vitest configured; QA here is manual (tsc + curl smoke tests).
